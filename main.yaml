@@ -39,6 +39,14 @@
       ansible.builtin.apt:
         autoremove: yes
 
+    - name: Install dependencies
+      ansible.builtin.apt:
+        pkg:
+          - curl
+          - apt-transport-https
+          - ca-certificates
+        state: present
+
     - name: Install neovim
       ansible.builtin.apt:
         name: neovim
@@ -47,11 +55,6 @@
     - name: Install tmux
       ansible.builtin.apt:
         name: tmux
-        state: present
-
-    - name: Install curl
-      ansible.builtin.apt:
-        name: curl
         state: present
 
   roles:
@@ -138,4 +141,18 @@
         insertafter: alias.*
       loop: "{{ aliases }}"
 
-  # TODO => JetBrainsMono font install
+    # TODO => JetBrainsMono font install
+
+    - name: Add kubectl apt repository key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        keyring: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+
+    - name: Add kubectl apt repository
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main"
+        filename: kubectl
+
+    - name: Install kubectl
+      apt:
+        name: kubectl
