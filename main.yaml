@@ -1,0 +1,116 @@
+---
+- name: Setup developer machine on Ubuntu
+  hosts: all
+  become: yes
+
+  vars:
+    headless: false
+    dotfiles_repo: "https://github.com/maladroitthief/dotfiles"
+    dotfiles_repo_version: main
+    dotfiles_repo_accept_hostkey: true
+    dotfiles_repo_local_destination: "~/workspace/dotfiles"
+
+    dotfiles_home: "~"
+    dotfiles_files:
+      - .gitignore
+      - .gitconfig
+      - .tmux.conf
+
+  pre_tasks:
+    - name: "Update repo cache"
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: "Upgrade packages"
+      ansible.builtin.apt:
+        upgrade: "yes"
+
+    - name: "Remove useless packages"
+      ansible.builtin.apt:
+        autoclean: yes
+
+    - name: "Remove old dependencies"
+      ansible.builtin.apt:
+        autoremove: yes
+
+    - name: Install neovim
+      ansible.builtin.apt:
+        name: neovim
+        state: present
+
+    - name: Install tmux
+      ansible.builtin.apt:
+        name: tmux
+        state: present
+
+  roles:
+    - geerlingguy.git
+    - geerlingguy.dotfiles
+    - geerlingguy.docker
+
+  tasks:
+    - name: Create the neovim directory if it does not exist
+      ansible.builtin.file:
+        path: ~/.config/nvim
+        state: directory
+
+    - name: Setup neovim dotfiles
+      include_role:
+        name: geerlingguy.dotfiles
+      vars:
+        dotfiles_home: "~/.config/nvim"
+        dotfiles_files:
+          - init.vim
+
+    - name: Fetch k3s
+      ansible.builtin.uri:
+        url: https://get.k3s.io
+        return_content: yes
+      register: k3s_installer
+
+    - name: Run k3s installer
+      ansible.builtin.shell:
+        cmd: sh -s -- -y
+        stdin: "{{ k3s_installer.content }}"
+
+    - name: Install node
+      community.general.snap:
+        name: node
+        state: present
+        classic: yes
+
+    - name: Install postman
+      community.general.snap:
+        name: postman
+        state: present
+
+    - name: Install gimp
+      community.general.snap:
+        name: gimp
+        state: present
+
+    - name: Install powershell
+      community.general.snap:
+        name: powershell
+        state: present
+        classic: yes
+
+    - name: Install vscode
+      community.general.snap:
+        name: code
+        state: present
+        classic: yes
+
+    - name: Install chrome
+      ansible.builtin.apt:
+        deb: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+
+    - name: Install spotify
+      community.general.snap:
+        name: spotify
+        state: present
+
+    - name: Install discord
+      community.general.snap:
+        name: discord
+        state: present
