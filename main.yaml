@@ -12,6 +12,7 @@
 
     dotfiles_home: "~"
     dotfiles_files:
+      - .inputrc
       - .gitignore
       - .gitconfig
       - .tmux.conf
