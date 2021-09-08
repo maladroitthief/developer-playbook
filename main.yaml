@@ -4,7 +4,8 @@
   become: yes
 
   vars:
-    headless: false
+    docker_users:
+      - maladroitthief
     dotfiles_repo: "https://github.com/maladroitthief/dotfiles"
     dotfiles_repo_version: main
     dotfiles_repo_accept_hostkey: true
@@ -16,6 +17,10 @@
       - .gitignore
       - .gitconfig
       - .tmux.conf
+
+    aliases:
+      - alias vim="nvim"
+      - alias vi="nvim"
 
   pre_tasks:
     - name: "Update repo cache"
@@ -44,6 +49,11 @@
         name: tmux
         state: present
 
+    - name: Install curl
+      ansible.builtin.apt:
+        name: curl
+        state: present
+
   roles:
     - geerlingguy.git
     - geerlingguy.dotfiles
@@ -51,6 +61,7 @@
 
   tasks:
     - name: Create the neovim directory if it does not exist
+      become: no
       ansible.builtin.file:
         path: ~/.config/nvim
         state: directory
@@ -59,20 +70,24 @@
       include_role:
         name: geerlingguy.dotfiles
       vars:
+        dotfiles_repo_local_destination: "~/workspace/neovim_dotfiles"
         dotfiles_home: "~/.config/nvim"
         dotfiles_files:
           - init.vim
 
-    - name: Fetch k3s
-      ansible.builtin.uri:
+    - name: Download k3s installer
+      get_url:
         url: https://get.k3s.io
-        return_content: yes
-      register: k3s_installer
+        dest: /tmp/k3s_installer.sh
+        mode: 0755
 
-    - name: Run k3s installer
-      ansible.builtin.shell:
-        cmd: sh -s -- -y
-        stdin: "{{ k3s_installer.content }}"
+    - name: Execute the k3s_installer.sh
+      shell: /tmp/k3s_installer.sh
+
+    - name: Remove the k3s_installer.sh
+      file:
+        path: /tmp/k3s_installer.sh
+        state: absent
 
     - name: Install node
       community.general.snap:
@@ -115,3 +130,12 @@
       community.general.snap:
         name: discord
         state: present
+
+    - name: Setup aliases in bashrc
+      ansible.builtin.lineinfile:
+        path: ~/.bashrc
+        line: "{{ item }}"
+        insertafter: alias.*
+      loop: "{{ aliases }}"
+
+  # TODO => JetBrainsMono font install

@@ -1,8 +1,8 @@
 ---
 collections:
-	- community.general
+  - community.general
 
 roles:
-	- geerlingguy.git
-	- geerlingguy.dotfiles
-	- geerlingguy.docker
+  - geerlingguy.git
+  - geerlingguy.dotfiles
+  - geerlingguy.docker
