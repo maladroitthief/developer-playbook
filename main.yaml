@@ -73,7 +73,6 @@
       include_role:
         name: geerlingguy.dotfiles
       vars:
-        dotfiles_repo_local_destination: "~/workspace/neovim_dotfiles"
         dotfiles_home: "~/.config/nvim"
         dotfiles_files:
           - init.vim
