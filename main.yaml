@@ -13,6 +13,7 @@
 
     dotfiles_home: "~"
     dotfiles_files:
+      - .ignore
       - .inputrc
       - .gitignore
       - .gitconfig
@@ -31,6 +32,9 @@
       - alias gdc='git diff --cached'
       - alias gr='git remote'
       - alias gs='git status'
+
+    exports:
+      - export FZF_DEFAULT_COMMAND='ag -l --path-to-ignore ~/.ignore --nocolor --hidden -g ""'
 
     pip_install_packages:
       - name: jmespath
@@ -60,6 +64,7 @@
           - ca-certificates
           - fzf
           - bat
+          - silversearcher-ag
         state: present
 
     - name: Install neovim
@@ -169,6 +174,14 @@
         line: "{{ item }}"
         insertafter: alias.*
       loop: "{{ aliases }}"
+
+    - name: Setup exports in bashrc
+      become: no
+      ansible.builtin.lineinfile:
+        path: ~/.bashrc
+        line: "{{ item }}"
+        insertafter: exports.*
+      loop: "{{ exports }}"
 
     # TODO => JetBrainsMono font install
 
