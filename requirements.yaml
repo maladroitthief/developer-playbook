@@ -6,3 +6,4 @@ roles:
   - geerlingguy.git
   - geerlingguy.dotfiles
   - geerlingguy.docker
+  - geerlingguy.pip

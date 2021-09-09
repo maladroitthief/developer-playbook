@@ -19,8 +19,21 @@
       - .tmux.conf
 
     aliases:
-      - alias vim="nvim"
-      - alias vi="nvim"
+      - alias vim='nvim'
+      - alias vi='nvim'
+      - alias view='nvim -R'
+      - alias vimdiff='nvim -d'
+      - alias ga='git add'
+      - alias gb='git branch'
+      - alias gc='git commit'
+      - alias gco='git checkout'
+      - alias gd='git diff'
+      - alias gdc='git diff --cached'
+      - alias gr='git remote'
+      - alias gs='git status'
+
+    pip_install_packages:
+      - name: jmespath
 
   pre_tasks:
     - name: "Update repo cache"
@@ -45,12 +58,27 @@
           - curl
           - apt-transport-https
           - ca-certificates
+          - fzf
+          - bat
         state: present
 
     - name: Install neovim
       ansible.builtin.apt:
         name: neovim
         state: present
+
+    - name: Create directory path for Vim-Plug
+      become: no
+      ansible.builtin.file:
+        path: ~/.local/share/nvim/site/autoload
+        state: directory
+
+    - name: Download Vim-Plug installer
+      become: no
+      get_url:
+        url: https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+        dest: ~/.local/share/nvim/site/autoload/plug.vim
+        mode: 0755
 
     - name: Install tmux
       ansible.builtin.apt:
@@ -61,6 +89,7 @@
     - geerlingguy.git
     - geerlingguy.dotfiles
     - geerlingguy.docker
+    - geerlingguy.pip
 
   tasks:
     - name: Create the neovim directory if it does not exist
@@ -134,6 +163,7 @@
         state: present
 
     - name: Setup aliases in bashrc
+      become: no
       ansible.builtin.lineinfile:
         path: ~/.bashrc
         line: "{{ item }}"
@@ -155,3 +185,20 @@
     - name: Install kubectl
       apt:
         name: kubectl
+
+    - name: Get git-delta metadata
+      uri:
+        url: https://api.github.com/repos/dandavison/delta/releases/latest
+        return_content: yes
+      register: git_delta_response
+
+    - name: Get the git delta url
+      set_fact:
+        git_delta_url: "{{ git_delta_response.json.assets|json_query(query) }}"
+      vars:
+        query: "[?name!=`null`]|[?starts_with(name, `git-delta_`) == `true`]|[?contains(name, `amd64.deb`) == `true`].browser_download_url | [0]"
+
+    - name: Install git delta
+      ansible.builtin.apt:
+        deb: "{{ git_delta_url }}"
+
