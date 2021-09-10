@@ -34,7 +34,7 @@
       - alias gs='git status'
 
     exports:
-      - export FZF_DEFAULT_COMMAND='ag -l --path-to-ignore ~/.ignore --nocolor --hidden -g ""'
+      - "export FZF_DEFAULT_COMMAND='ag -l --path-to-ignore ~/.ignore --nocolor --hidden -g \"\"'"
 
     pip_install_packages:
       - name: jmespath
@@ -215,3 +215,8 @@
       ansible.builtin.apt:
         deb: "{{ git_delta_url }}"
 
+    - name: Tmux Plugin Manager
+      become: no
+      ansible.builtin.git:
+        repo: https://github.com/tmux-plugins/tpm
+        dest: ~/.tmux/plugins/tpm
