@@ -67,10 +67,32 @@
           - silversearcher-ag
         state: present
 
+  roles:
+    - geerlingguy.git
+    - geerlingguy.dotfiles
+    - geerlingguy.docker
+    - geerlingguy.pip
+
+  tasks:
+    - name: Get neovim metadata
+      uri:
+        url: https://api.github.com/repos/neovim/neovim/releases/latest
+        return_content: yes
+      register: neovim_response
+
+    - name: Get the neovim url
+      set_fact:
+        neovim_url: "{{ neovim_response.json.assets|json_query(query) }}"
+      vars:
+        query: "[?name!=`null`]|[?name == `nvim.appimage`].browser_download_url | [0]"
+
     - name: Install neovim
-      ansible.builtin.apt:
-        name: neovim
-        state: present
+      get_url:
+        url: "{{ neovim_url }}"
+        dest: /usr/bin/nvim
+        owner: root
+        group: root
+        mode: +x
 
     - name: Create directory path for Vim-Plug
       become: no
@@ -85,18 +107,6 @@
         dest: ~/.local/share/nvim/site/autoload/plug.vim
         mode: 0755
 
-    - name: Install tmux
-      ansible.builtin.apt:
-        name: tmux
-        state: present
-
-  roles:
-    - geerlingguy.git
-    - geerlingguy.dotfiles
-    - geerlingguy.docker
-    - geerlingguy.pip
-
-  tasks:
     - name: Create the neovim directory if it does not exist
       become: no
       ansible.builtin.file:
@@ -110,6 +120,11 @@
         dotfiles_home: "~/.config/nvim"
         dotfiles_files:
           - init.vim
+
+    - name: Install tmux
+      ansible.builtin.apt:
+        name: tmux
+        state: present
 
     - name: Download k3s installer
       get_url:
