@@ -28,13 +28,18 @@
       - alias gb='git branch'
       - alias gc='git commit'
       - alias gco='git checkout'
+      - alias gp='git push'
       - alias gd='git diff'
       - alias gdc='git diff --cached'
       - alias gr='git remote'
       - alias gs='git status'
 
+    go_version: 1.17.1
+
     exports:
-      - "export FZF_DEFAULT_COMMAND='ag -l --path-to-ignore ~/.ignore --nocolor --hidden -g \"\"'"
+      - 'export FZF_DEFAULT_COMMAND=''ag -l --path-to-ignore ~/.ignore --nocolor --hidden -g ""'''
+      - export PATH=$PATH:/usr/local/go/bin
+      - export GOPATH=$HOME/workspace/go
 
     pip_install_packages:
       - name: jmespath
@@ -126,19 +131,11 @@
         name: tmux
         state: present
 
-    - name: Download k3s installer
-      get_url:
-        url: https://get.k3s.io
-        dest: /tmp/k3s_installer.sh
-        mode: 0755
-
-    - name: Execute the k3s_installer.sh
-      shell: /tmp/k3s_installer.sh
-
-    - name: Remove the k3s_installer.sh
-      file:
-        path: /tmp/k3s_installer.sh
-        state: absent
+    - name: Install minikube
+      ansible.builtin.get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /usr/local/bin/minikube
+        mode: "0755"
 
     - name: Install node
       community.general.snap:
@@ -168,9 +165,9 @@
         state: present
         classic: yes
 
-    - name: Install chrome
-      ansible.builtin.apt:
-        deb: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+    # - name: Install chrome
+    #   ansible.builtin.apt:
+    #     deb: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
     - name: Install spotify
       community.general.snap:
@@ -235,3 +232,14 @@
       ansible.builtin.git:
         repo: https://github.com/tmux-plugins/tpm
         dest: ~/.tmux/plugins/tpm
+
+    - name: Remove existing installation of go
+      file:
+        path: /usr/local/go/
+        state: absent
+
+    - name: Install go
+      ansible.builtin.unarchive:
+        src: "https://golang.org/dl/go{{ go_version }}.linux-amd64.tar.gz"
+        dest: /usr/local/
+        remote_src: yes
