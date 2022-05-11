@@ -1,0 +1,4 @@
+---
+- name: Setup dotfiles
+  ansible.builtin.include_role:
+    name: geerlingguy.dotfiles

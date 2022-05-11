@@ -1,0 +1,72 @@
+---
+- name: DevOps Workstation Playbook
+  hosts: local
+  become: yes
+
+  vars:
+    system_user: maladroitthief
+
+    project_directory: /home/{{ system_user }}/workspace
+
+    docker_users:
+      - "{{ system_user }}"
+
+    dotfiles_repo: "git@github.com:maladroitthief/dotfiles.git"
+    dotfiles_repo_accept_hostkey: true
+    dotfiles_repo_local_destination: "{{ project_directory }}/maladroitthief/dotfiles"
+
+    dotfiles_home: /home/{{ system_user }}
+    dotfiles_files:
+      - .bash_aliases
+      - .ignore
+      - .inputrc
+      - .gitignore
+      - .gitconfig
+      - .tmux.conf
+
+    go_version: 1.18.1
+
+    bashrc_exports:
+      fzf: 'export FZF_DEFAULT_COMMAND=''ag -l --path-to-ignore ~/.ignore --nocolor --hidden -g ""'''
+      golang: |
+        export PATH=$PATH:/usr/local/go/bin
+        export GOPATH={{ project_directory }}/go
+
+  pre_tasks:
+    - name: Create project directory
+      become: false
+      ansible.builtin.file:
+        path: "{{ project_directory }}"
+        state: directory
+
+  tasks:
+    - include_tasks: tasks/setup-Debian.yml
+      when: ansible_os_family == 'Debian'
+
+    - include_tasks: tasks/setup-RedHat.yml
+      when: ansible_os_family == 'RedHat'
+
+    - name: Pip install
+      ansible.builtin.pip:
+        name: jmespath
+
+    - name: Dotfiles
+      ansible.builtin.include_tasks: tasks/dotfiles.yml
+
+    - name: NeoVim
+      ansible.builtin.include_tasks: tasks/neovim.yml
+
+    - name: Go {{ go_version }}
+      ansible.builtin.include_tasks: tasks/go.yml
+
+    - name: Kubernetes
+      ansible.builtin.include_tasks: tasks/kubernetes.yml
+
+    - name: bashrc
+      ansible.builtin.include_tasks: tasks/bashrc.yml
+
+    - name: JetBrains Mono
+      ansible.builtin.include_tasks: tasks/jetbrains_mono.yml
+
+    - name: Tmux Plugin Manager
+      ansible.builtin.include_tasks: tasks/tmux_plugin_manager.yml

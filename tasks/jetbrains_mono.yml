@@ -1,0 +1,38 @@
+---
+- name: Get the Jetbrains Mono response
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/JetBrains/JetBrainsMono/releases/latest
+    return_content: true
+  register: jetbrains_response
+
+- name: Create JetBrains Mono tmp directory
+  ansible.builtin.file:
+    path: /tmp/JetBrainsMono
+    state: directory
+
+- name: Unarchive the JetBrains Mono zip
+  ansible.builtin.unarchive:
+    src: "{{ jetbrains_response.json.assets[0].browser_download_url }}"
+    dest: /tmp/JetBrainsMono
+    remote_src: yes
+
+- name: Download the JetBrains Mono zip
+  ansible.builtin.get_url:
+    url: "{{ jetbrains_response.json.assets[0].browser_download_url }}"
+    dest: /tmp/jetbrains-mono-latest.zip
+
+- name: Create JetBrains Mono font directory
+  ansible.builtin.file:
+    path: /usr/share/fonts/JetBrainsMono
+    state: directory
+
+- name: Move the fonts to the font directory
+  ansible.builtin.copy:
+    src: /tmp/JetBrainsMono/fonts/ttf/
+    dest: /usr/share/fonts/JetBrainsMono/
+    remote_src: yes
+  register: jetbrains_font
+
+- name: Refresh font cache
+  ansible.builtin.shell: fc-cache -f -v
+  when: jetbrains_font.changed

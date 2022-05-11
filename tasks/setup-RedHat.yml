@@ -1,0 +1,94 @@
+---
+- name: dnf
+  block:
+    - name: Autoremove dependencies
+      ansible.builtin.dnf:
+        autoremove: yes
+
+    - name: Upgrade all packages
+      ansible.builtin.dnf:
+        update_cache: yes
+        name: "*"
+        state: latest
+
+    - name: Install dnf packages
+      ansible.builtin.dnf:
+        update_cache: yes
+        name:
+          - curl
+          - fzf
+          - bat
+          - the_silver_searcher
+          - git
+          - python3
+          - python3-pip
+          - tmux
+          - fedora-workstation-repositories
+          - nodejs
+          - gimp
+          - flatpak
+        state: latest
+
+    - name: Enable Google Chrome repo
+      ansible.builtin.shell: dnf config-manager --set-enabled google-chrome
+
+    - name: Install Google Chrome
+      ansible.builtin.dnf:
+        update_cache: yes
+        name: google-chrome-stable
+
+    - name: Install Zoom
+      ansible.builtin.dnf:
+        name: https://zoom.us/client/latest/zoom_x86_64.rpm
+        state: present
+
+- name: VS Code
+  block:
+    - name: Install vscode repo
+      ansible.builtin.yum_repository:
+        name: code
+        description: Visual Studio Code repo
+        file: vscode
+        baseurl: https://packages.microsoft.com/yumrepos/vscode
+        gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+        gpgcheck: yes
+
+    - name: Install vscode
+      ansible.builtin.dnf:
+        name: code
+        state: present
+
+- name: Flatpak
+  block:
+    - name: Add the flathub flatpak repository
+      community.general.flatpak_remote:
+        name: flathub
+        state: present
+        flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+
+    - name: Install Spotify
+      community.general.flatpak:
+        name: com.spotify.Client
+        state: present
+
+    - name: Install Discord
+      community.general.flatpak:
+        name: discord
+        state: present
+
+- name: Kubectl
+  block:
+    - name: Install kubectl repo
+      ansible.builtin.yum_repository:
+        name: Kubernetes
+        description: Kubectl repo
+        file: kubernetes
+        baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+        gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+        gpgcheck: yes
+        repo_gpgcheck: yes
+
+    - name: Install kubectl
+      ansible.builtin.dnf:
+        name: kubectl
+        state: present
