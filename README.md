@@ -2,7 +2,7 @@
 title: Ubuntu developer playbook
 description: An ansible playbook for setting up a developer machine
 author: Ian Weller
-date: 09.08.2021
+date: 05.11.2022
 ---
 
 # Ubuntu developer playbook
@@ -19,11 +19,11 @@ date: 09.08.2021
 First install the collections and roles roles required to run this playbook
 
 ```bash
-ansible-galaxy install -r requirements.yaml
+ansible-galaxy install -r requirements.yml
 ```
 
 Run the playbook from the project root
 
 ```bash
-ansible-playbook main.yaml --inventory inventory.yaml --ask-become-pass
+ansible-playbook devops_workstation.yml --inventory inventory.yml --ask-become-pass
 ```

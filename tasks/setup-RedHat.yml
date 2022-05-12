@@ -41,6 +41,7 @@
       ansible.builtin.dnf:
         name: https://zoom.us/client/latest/zoom_x86_64.rpm
         state: present
+        disable_gpg_check: yes
 
 - name: VS Code
   block:

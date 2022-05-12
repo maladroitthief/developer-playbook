@@ -1,6 +1,6 @@
 ---
 - name: DevOps Workstation Playbook
-  hosts: local
+  hosts: all
   become: yes
 
   vars:
@@ -12,6 +12,7 @@
       - "{{ system_user }}"
 
     dotfiles_repo: "git@github.com:maladroitthief/dotfiles.git"
+    dotfiles_repo_version: main
     dotfiles_repo_accept_hostkey: true
     dotfiles_repo_local_destination: "{{ project_directory }}/maladroitthief/dotfiles"
 
