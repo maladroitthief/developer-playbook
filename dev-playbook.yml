@@ -1,6 +1,6 @@
 ---
-- name: DevOps Workstation Playbook
-  hosts: all
+- name: Developer Playbook
+  hosts: localhost
   become: yes
 
   vars:
@@ -18,6 +18,7 @@
 
     dotfiles_home: /home/{{ system_user }}
     dotfiles_files:
+      - .config/nvim
       - .bash_aliases
       - .ignore
       - .inputrc
@@ -25,20 +26,17 @@
       - .gitconfig
       - .tmux.conf
 
-    go_version: 1.18.1
+    go_version: 1.19.4
 
     bashrc_exports:
       fzf: 'export FZF_DEFAULT_COMMAND=''ag -l --path-to-ignore ~/.ignore --nocolor --hidden -g ""'''
       golang: |
         export PATH=$PATH:/usr/local/go/bin
         export GOPATH={{ project_directory }}/go
-
-  pre_tasks:
-    - name: Create project directory
-      become: false
-      ansible.builtin.file:
-        path: "{{ project_directory }}"
-        state: directory
+      bash_aliases: |
+        if [ -f ~/.bash_aliases ]; then
+          . ~/.bash_aliases
+        fi
 
   tasks:
     - include_tasks: tasks/setup-Debian.yml
@@ -60,14 +58,11 @@
     - name: Go {{ go_version }}
       ansible.builtin.include_tasks: tasks/go.yml
 
-    - name: Kubernetes
-      ansible.builtin.include_tasks: tasks/kubernetes.yml
-
     - name: bashrc
       ansible.builtin.include_tasks: tasks/bashrc.yml
 
     - name: JetBrains Mono
-      ansible.builtin.include_tasks: tasks/jetbrains_mono.yml
+      ansible.builtin.include_tasks: tasks/jetbrains-mono.yml
 
     - name: Tmux Plugin Manager
-      ansible.builtin.include_tasks: tasks/tmux_plugin_manager.yml
+      ansible.builtin.include_tasks: tasks/tmux-plugin-manager.yml

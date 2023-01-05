@@ -1,23 +1,19 @@
 ---
-- name: Get neovim metadata
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/neovim/neovim/releases/latest
-    return_content: yes
-  register: neovim_response
+- name: Install neovim - Debian
+  ansible.builtin.apt:
+    update_cache: yes
+    pkg:
+      - neovim
+      - python3-neovim
+  when: ansible_os_family == 'Debian'
 
-- name: Get the neovim url
-  ansible.builtin.set_fact:
-    neovim_url: "{{ neovim_response.json.assets|json_query(query) }}"
-  vars:
-    query: "[?name!=`null`]|[?name == `nvim.appimage`].browser_download_url | [0]"
-
-- name: Install neovim
-  ansible.builtin.get_url:
-    url: "{{ neovim_url }}"
-    dest: /usr/bin/nvim
-    owner: root
-    group: root
-    mode: +x
+- name: Install neovim - RedHat
+  ansible.builtin.dnf:
+    update_cache: yes
+    name:
+      - neovim
+      - python3-neovim
+  when: ansible_os_family == 'RedHat'
 
 - name: Create directory path for Vim-Plug
   become: false
@@ -31,17 +27,3 @@
     url: https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
     dest: /home/{{ system_user }}/.local/share/nvim/site/autoload/plug.vim
     mode: 0755
-
-- name: Create the neovim directory if it does not exist
-  become: false
-  ansible.builtin.file:
-    path: /home/{{ system_user }}/.config/nvim
-    state: directory
-
-- name: Setup neovim dotfiles
-  ansible.builtin.include_role:
-    name: geerlingguy.dotfiles
-  vars:
-    dotfiles_home: /home/{{ system_user }}/.config/nvim
-    dotfiles_files:
-      - init.vim
